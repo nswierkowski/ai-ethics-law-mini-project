@@ -31,8 +31,6 @@ except ImportError:
     _TORCH_AVAILABLE = False
 
 
-# ── Dataset ───────────────────────────────────────────────────────────────────
-
 class ToSDataset(Dataset):
     """
     Wraps a pd.DataFrame (text, label) as a PyTorch Dataset.
@@ -79,8 +77,6 @@ class ToSDataset(Dataset):
         return self.labels
 
 
-# ── DataLoaders ───────────────────────────────────────────────────────────────
-
 def build_dataloaders(
     train_df: pd.DataFrame,
     val_df:   pd.DataFrame,
@@ -106,8 +102,6 @@ def build_dataloaders(
     return train_loader, val_loader, test_loader
 
 
-# ── Class weights ─────────────────────────────────────────────────────────────
-
 def compute_class_weights_tensor(
     df: pd.DataFrame,
     num_labels: int,
@@ -128,8 +122,6 @@ def compute_class_weights_tensor(
     weights = n_samples / (num_labels * counts)
     return torch.tensor(weights, dtype=torch.float32).to(device)
 
-
-# ── Focal Loss ────────────────────────────────────────────────────────────────
 
 class FocalLoss(nn.Module):
     """
@@ -159,11 +151,9 @@ class FocalLoss(nn.Module):
         self.reduction = reduction
 
     def forward(self, logits: torch.Tensor, targets: torch.Tensor) -> torch.Tensor:
-        # logits: (B, C), targets: (B,)
         log_probs = F.log_softmax(logits, dim=-1)              # (B, C)
         probs     = torch.exp(log_probs)                        # (B, C)
 
-        # Gather true-class log-prob and prob
         log_pt = log_probs.gather(1, targets.unsqueeze(1)).squeeze(1)  # (B,)
         pt     = probs.gather(1, targets.unsqueeze(1)).squeeze(1)      # (B,)
 

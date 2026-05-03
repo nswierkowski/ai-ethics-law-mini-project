@@ -1,0 +1,5 @@
+Experiment,Task,Imbalance Handled,Loss,Downsampled,Best Val Macro-F1,Best Epoch,Early Stopped,Epochs Trained,Test Accuracy,Test Macro-F1,Test Weighted-F1,Train Time (min)
+A: Baseline,multiclass,False,CrossEntropy,False,0.6872,9,True,12,0.949,0.6867,0.948,15.6
+B: Balanced,multiclass,True,CrossEntropy,True,0.6078,9,True,12,0.9141,0.6321,0.9245,6.8
+C: Binary,binary,True,CrossEntropy,True,0.8363,7,True,10,0.9378,0.8534,0.9408,5.7
+D: Focal,multiclass,True,Focal,True,0.6317,7,True,10,0.9235,0.6343,0.9296,5.8

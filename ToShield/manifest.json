@@ -1,0 +1,45 @@
+{
+  "manifest_version": 3,
+  "name": "ToS Shield",
+  "version": "1.0.0",
+  "description": "Identifies unfair clauses in Terms of Service using on-device AI. 100% private.",
+
+  "permissions": [
+    "activeTab",
+    "scripting",
+    "storage"
+  ],
+
+  "background": {
+    "service_worker": "background.js",
+    "type": "module"
+  },
+
+  "action": {
+    "default_popup": "popup.html"
+  },
+
+  "content_scripts": [
+    {
+      "matches": ["<all_urls>"],
+      "js": ["content.js"],
+      "run_at": "document_idle"
+    }
+  ],
+
+  "content_security_policy": {
+    "extension_pages": "script-src 'self' 'wasm-unsafe-eval'; object-src 'self';"
+  },
+
+  "web_accessible_resources": [
+    {
+      "resources": [
+        "model/*",
+        "lib/*"
+      ],
+      "matches": ["<all_urls>"]
+    }
+  ],
+
+  "host_permissions": []
+}

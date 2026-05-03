@@ -62,7 +62,6 @@ class ExperimentConfig:
     downsample_ratio: Optional[float] = None   # None = use full data
     focal_gamma: float = 2.0
 
-    # Training hyper-parameters
     model_name: str      = "distilbert-base-uncased"
     max_length: int      = 128
     batch_size: int      = 16
@@ -72,17 +71,11 @@ class ExperimentConfig:
     weight_decay: float  = 0.01
     seed: int            = 42
 
-    # Dropout applied to the classification head (pre_classifier → dropout → classifier).
-    # DistilBERT's built-in seq_classif_dropout defaults to 0.2; we override it here.
     classifier_dropout: float = 0.3
 
-    # Early stopping — monitors val macro-F1 (higher = better).
-    # Training halts when val macro-F1 has not improved by at least `es_min_delta`
-    # for `es_patience` consecutive epochs.  Best weights are always restored.
-    es_patience:  int   = 3      # epochs without improvement before stopping
-    es_min_delta: float = 0.001  # minimum absolute gain to count as "better"
+    es_patience:  int   = 3      
+    es_min_delta: float = 0.001  
 
-    # Derived
     @property
     def model_save_path(self) -> str:
         return os.path.join(MODELS_DIR, self.name)
@@ -91,8 +84,6 @@ class ExperimentConfig:
     def is_binary(self) -> bool:
         return self.task == "binary"
 
-
-# ── The four experiments ───────────────────────────────────────────────────────
 
 EXPERIMENTS: Dict[str, ExperimentConfig] = {
     "A_multiclass_baseline": ExperimentConfig(

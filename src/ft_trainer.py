@@ -33,8 +33,6 @@ from sklearn.metrics import (
 )
 from .training_config import ExperimentConfig, LABEL_NAMES
 
-# Heavy dependencies — lazy so the module is importable without torch
-
 import torch
 import torch.nn as nn
 from torch.optim import AdamW
@@ -45,7 +43,6 @@ from .ft_dataset import FocalLoss, compute_class_weights_tensor
 _TORCH_AVAILABLE = True
 
 
-# ── Early Stopping ────────────────────────────────────────────────────────────
 
 class EarlyStopping:
     """
@@ -104,7 +101,6 @@ class EarlyStopping:
         )
 
 
-# ── Result container ──────────────────────────────────────────────────────────
 
 @dataclass
 class TrainingResult:
@@ -130,7 +126,6 @@ class TrainingResult:
     test_labels: Optional[np.ndarray] = None
 
 
-# ── Trainer ───────────────────────────────────────────────────────────────────
 
 class DistilBertTrainer:
     """
@@ -171,31 +166,25 @@ class DistilBertTrainer:
         print(f"  Early stopping    : patience={cfg.es_patience}, "
               f"min_delta={cfg.es_min_delta}")
 
-    # ── public entry point ────────────────────────────────────────────────────
 
     def run(self) -> TrainingResult:
         result = TrainingResult(cfg=self.cfg)
         t0 = time.time()
 
-        # 1. Tokeniser
         tokenizer = AutoTokenizer.from_pretrained(self.cfg.model_name)
         result.tokenizer = tokenizer
 
-        # 2. Datasets / loaders
         from .ft_dataset import build_dataloaders
         train_df_used = self._maybe_downsample(self.train_df)
         train_loader, val_loader, test_loader = build_dataloaders(
             train_df_used, self.val_df, self.test_df, self.cfg
         )
 
-        # 3. Model — inject dropout via config before loading weights
         model = self._build_model()
         result.model = model
 
-        # 4. Loss function
         criterion = self._build_criterion(train_df_used)
 
-        # 5. Optimiser + scheduler
         optimizer = AdamW(
             model.parameters(),
             lr=self.cfg.learning_rate,
@@ -207,11 +196,9 @@ class DistilBertTrainer:
             optimizer, warmup_steps, total_steps
         )
 
-        # 6. Early stopping tracker
         es         = EarlyStopping(self.cfg.es_patience, self.cfg.es_min_delta)
         best_state: Optional[dict] = None
 
-        # 7. Epoch loop
         for epoch in range(1, self.cfg.num_epochs + 1):
             train_loss          = self._train_epoch(
                 model, train_loader, criterion, optimizer, scheduler
@@ -223,7 +210,6 @@ class DistilBertTrainer:
             result.val_macro_f1s.append(val_f1)
             result.epochs_trained = epoch
 
-            # Snapshot best weights before calling es.step() (which updates best_score)
             improved = val_f1 >= es.best_score + es.min_delta
             if improved:
                 best_state = {
@@ -253,7 +239,6 @@ class DistilBertTrainer:
                 result.early_stopped = True
                 break
 
-        # 8. Restore best weights (always, even if ES did not fire)
         if best_state is not None:
             model.load_state_dict(
                 {k: v.to(self.device) for k, v in best_state.items()}
@@ -263,10 +248,8 @@ class DistilBertTrainer:
         result.best_val_macro_f1 = float(es.best_score)
         result.best_epoch        = es.best_epoch
 
-        # 9. Test evaluation
         self._evaluate_test(model, test_loader, result)
 
-        # 10. Save checkpoint
         self._save_checkpoint(model, tokenizer)
 
         result.training_time_s = time.time() - t0
@@ -279,7 +262,6 @@ class DistilBertTrainer:
         )
         return result
 
-    # ── private helpers ───────────────────────────────────────────────────────
 
     def _build_model(self) -> "nn.Module":
         """

@@ -1,0 +1,33 @@
+experiment,class,f1
+A: Baseline,Arbitration,0.7058823529411765
+A: Baseline,Content Removal,0.5357142857142857
+A: Baseline,Copyright/IP,0.6774193548387096
+A: Baseline,Jurisdiction,0.6857142857142857
+A: Baseline,Governing Law,0.75
+A: Baseline,Limitation of Liability,0.8888888888888888
+A: Baseline,Unilateral Termination,0.896551724137931
+A: Baseline,Broad Data Use,0.75
+A: Baseline,Privacy Change,0.0
+A: Baseline,OK / Fair,0.9767441860465116
+B: Balanced,Arbitration,0.6326530612244898
+B: Balanced,Content Removal,0.6111111111111112
+B: Balanced,Copyright/IP,0.6410256410256411
+B: Balanced,Jurisdiction,0.6
+B: Balanced,Governing Law,0.7307692307692307
+B: Balanced,Limitation of Liability,0.9230769230769231
+B: Balanced,Unilateral Termination,0.875
+B: Balanced,Broad Data Use,0.35294117647058826
+B: Balanced,Privacy Change,0.0
+B: Balanced,OK / Fair,0.9547088425593099
+C: Binary,Fair,0.9646142958244869
+C: Binary,Unfair,0.7422680412371134
+D: Focal,Arbitration,0.6122448979591837
+D: Focal,Content Removal,0.5555555555555556
+D: Focal,Copyright/IP,0.6666666666666666
+D: Focal,Jurisdiction,0.5714285714285714
+D: Focal,Governing Law,0.8
+D: Focal,Limitation of Liability,0.8571428571428571
+D: Focal,Unilateral Termination,0.875
+D: Focal,Broad Data Use,0.4444444444444444
+D: Focal,Privacy Change,0.0
+D: Focal,OK / Fair,0.9605963791267306

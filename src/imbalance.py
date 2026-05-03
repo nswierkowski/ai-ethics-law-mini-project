@@ -81,7 +81,6 @@ def plot_imbalance_summary(
     set_style()
     fig, (ax_ir, ax_w) = plt.subplots(1, 2, figsize=figsize)
 
-    # ── IR bars ───────────────────────────────────────────────────────────
     colors = [PALETTE_FAIR if ir <= 1.5 else PALETTE_UNFAIR
               for ir in report_df["IR_vs_majority"]]
     ax_ir.barh(
@@ -102,7 +101,6 @@ def plot_imbalance_summary(
             va="center", fontsize=8, color="#333",
         )
 
-    # ── Pie of recommended strategies ─────────────────────────────────────
     strategies = report_df["strategy"].value_counts()
     ax_w.pie(
         strategies.values,

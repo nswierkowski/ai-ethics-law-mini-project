@@ -26,7 +26,6 @@ import seaborn as sns
 from .training_config import LABEL_NAMES, BINARY_LABEL_NAMES
 from .eda_utils import set_style, PALETTE_FAIR, PALETTE_UNFAIR, CLASS_COLORS
  
-# Consistent colour per experiment
 EXP_COLORS = {
     "A_multiclass_baseline":  "#E63946",
     "B_multiclass_balanced":  "#2A9D8F",
@@ -42,7 +41,6 @@ EXP_SHORT = {
 }
  
  
-# ── Training curves ───────────────────────────────────────────────────────────
  
 def plot_training_curves(results: Dict, figsize=(16, 10)) -> plt.Figure:
     """
@@ -60,7 +58,6 @@ def plot_training_curves(results: Dict, figsize=(16, 10)) -> plt.Figure:
         color  = EXP_COLORS.get(exp_name, "#333")
         short  = EXP_SHORT.get(exp_name, exp_name)
  
-        # Loss
         ax_loss = axes[0, col]
         ax_loss.plot(epochs, res.train_losses, "o--", color=color,
                      alpha=0.7, linewidth=1.8, markersize=5, label="Train")
@@ -71,7 +68,6 @@ def plot_training_curves(results: Dict, figsize=(16, 10)) -> plt.Figure:
         ax_loss.set_ylabel("Loss" if col == 0 else "")
         ax_loss.legend(fontsize=8)
  
-        # Val macro-F1
         ax_f1 = axes[1, col]
         ax_f1.plot(epochs, res.val_macro_f1s, "s-", color=color,
                    linewidth=2.2, markersize=6)
@@ -88,9 +84,7 @@ def plot_training_curves(results: Dict, figsize=(16, 10)) -> plt.Figure:
     fig.tight_layout(pad=2)
     return fig
  
- 
-# ── Experiment comparison bar chart ───────────────────────────────────────────
- 
+  
 def plot_experiment_comparison(results: Dict, figsize=(13, 5)) -> plt.Figure:
     """
     Grouped bar chart: accuracy, macro-F1, weighted-F1 for each experiment.
@@ -126,8 +120,6 @@ def plot_experiment_comparison(results: Dict, figsize=(13, 5)) -> plt.Figure:
     return fig
  
  
-# ── Confusion matrices ────────────────────────────────────────────────────────
- 
 def plot_confusion_matrices(results: Dict, figsize=(18, 14)) -> plt.Figure:
     """One normalised confusion matrix per experiment, in a 2×2 grid."""
     set_style()
@@ -137,7 +129,6 @@ def plot_confusion_matrices(results: Dict, figsize=(18, 14)) -> plt.Figure:
     for idx, (exp_name, res) in enumerate(results.items()):
         ax = axes[idx]
         cm = res.confusion_mat.astype(float)
-        # Row-normalise (recall per class)
         row_sums = cm.sum(axis=1, keepdims=True)
         cm_norm  = np.divide(cm, row_sums, where=row_sums != 0)
  
@@ -169,16 +160,13 @@ def plot_confusion_matrices(results: Dict, figsize=(18, 14)) -> plt.Figure:
     fig.tight_layout(pad=2)
     return fig
  
- 
-# ── Per-class F1 heatmap ──────────────────────────────────────────────────────
- 
+  
 def plot_per_class_f1_heatmap(results: Dict, figsize=(13, 5)) -> plt.Figure:
     """
     Heatmap rows = experiments, cols = classes.
     Only multiclass experiments shown (binary has different label space).
     """
     set_style()
-    # Filter to multiclass
     mc_results = {k: v for k, v in results.items() if not v.cfg.is_binary}
  
     if not mc_results:
@@ -214,9 +202,7 @@ def plot_per_class_f1_heatmap(results: Dict, figsize=(13, 5)) -> plt.Figure:
     fig.tight_layout(pad=2)
     return fig
  
- 
-# ── Summary DataFrame ─────────────────────────────────────────────────────────
- 
+  
 def results_to_dataframe(results: Dict) -> pd.DataFrame:
     rows = []
     for exp_name, res in results.items():

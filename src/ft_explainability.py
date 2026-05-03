@@ -66,20 +66,15 @@ def _to_np_safe(t):
         return t.numpy()
     return np.array(t)
 
-# ── Named return type ─────────────────────────────────────────────────────────
 
 class TokenImportance(NamedTuple):
-    tokens:     List[str]    # decoded sub-word tokens (no [CLS]/[SEP])
-    scores:     np.ndarray   # shape (n_tokens,), higher = more important
+    tokens:     List[str]    
+    scores:     np.ndarray   
     method:     str          # "attention_rollout" | "integrated_gradients" | "shap"
     pred_label: int
     pred_prob:  float
     true_label: Optional[int] = None
 
-
-# ═══════════════════════════════════════════════════════════════════════════════
-#  1. Attention Rollout
-# ═══════════════════════════════════════════════════════════════════════════════
 
 def attention_rollout(
     model,
@@ -110,7 +105,6 @@ def attention_rollout(
         padding=False,
     ).to(device)
 
-    # ── Helper: tensor → numpy ────────────────────────────────────────────────
     def _to_np(t):
         if hasattr(t, 'cpu'):    t = t.cpu()
         if hasattr(t, 'detach'): t = t.detach()
@@ -128,7 +122,6 @@ def attention_rollout(
     _orig_out_attn  = getattr(cfg, "output_attentions",    False)
 
     if cfg is not None:
-        # Switch to eager — the only implementation that returns attention tensors
         cfg._attn_implementation = "eager"
         cfg.output_attentions    = True
 
@@ -140,7 +133,6 @@ def attention_rollout(
             output_attentions = True,
         )
 
-    # Restore original implementation so subsequent inference uses SDPA again
     if cfg is not None:
         cfg._attn_implementation = _orig_attn_impl
         cfg.output_attentions    = _orig_out_attn
@@ -157,25 +149,19 @@ def attention_rollout(
     seq_len  = enc["input_ids"].shape[1]
     avg_attn = [_to_np(a).squeeze(0).mean(0) for a in attentions]
 
-    # Rollout
     R = np.eye(seq_len)
     for A in avg_attn:
         A_aug = 0.5 * A + 0.5 * np.eye(seq_len)
-        # Normalise rows
         A_aug = A_aug / (A_aug.sum(axis=-1, keepdims=True) + 1e-9)
         R = R @ A_aug
 
-    # CLS token attends to each position
-    cls_scores = R[0, 1:-1]   # drop [CLS] and [SEP]
+    cls_scores = R[0, 1:-1]   
     cls_scores = cls_scores / (cls_scores.max() + 1e-9)
 
-    # Decode tokens (skip [CLS] and [SEP])
     token_ids = enc["input_ids"].squeeze(0).cpu().tolist()
     tokens    = tokenizer.convert_ids_to_tokens(token_ids)[1:-1]
 
-    # Prediction
     logits_np = _to_np(out.logits).squeeze(0)
-    # Softmax in numpy
     e = np.exp(logits_np - logits_np.max())
     probs = e / e.sum()
     pred_lbl  = int(probs.argmax())
@@ -191,9 +177,6 @@ def attention_rollout(
     )
 
 
-# ═══════════════════════════════════════════════════════════════════════════════
-#  2. Integrated Gradients  (captum)
-# ═══════════════════════════════════════════════════════════════════════════════
 
 def integrated_gradients(
     model,
@@ -220,7 +203,6 @@ def integrated_gradients(
     token_ids_list = input_ids.squeeze(0).cpu().tolist()
     tokens         = tokenizer.convert_ids_to_tokens(token_ids_list)[1:-1]
 
-    # Prediction
     _ctx2 = torch.no_grad() if _TORCH_AVAILABLE else _nullctx()
     with _ctx2:
         out = model(input_ids=input_ids, attention_mask=attention_mask)
@@ -231,7 +213,6 @@ def integrated_gradients(
     pred_prob = float(probs.max())
     target    = pred_lbl
 
-    # ── try captum ────────────────────────────────────────────────────────────
     try:
         from captum.attr import LayerIntegratedGradients  # type: ignore
 
@@ -246,18 +227,14 @@ def integrated_gradients(
             n_steps=n_steps,
             return_convergence_delta=True,
         )
-        # attrs: (1, seq, embed_dim) → L2 per token
         scores = attrs.squeeze(0).norm(dim=-1).detach().cpu().numpy()
-        scores = scores[1:-1]   # drop [CLS] [SEP]
+        scores = scores[1:-1] 
 
     except ImportError:
-        # ── LOO gradient-free approximation (works without torch) ─────────────
-        # Occlusion: mask each token and measure probability drop
         baseline_prob = probs[target]
         scores_list   = []
 
         for i in range(len(tokens)):
-            # Re-encode with token i masked
             masked_text = " ".join(
                 "[MASK]" if j == i else t
                 for j, t in enumerate(tokens)
@@ -284,11 +261,6 @@ def integrated_gradients(
         true_label=true_label,
     )
 
-
-# ═══════════════════════════════════════════════════════════════════════════════
-#  3. SHAP  (KernelExplainer over token-mask perturbations)
-# ═══════════════════════════════════════════════════════════════════════════════
-
 def shap_token_importance(
     model,
     tokenizer,
@@ -309,7 +281,6 @@ def shap_token_importance(
     """
     model.eval()
 
-    # ── Tokenise once; keep numpy copies for masking logic ────────────────────
     enc          = tokenizer(text, return_tensors="pt",
                              truncation=True, max_length=128, padding=False)
     input_ids_np = enc["input_ids"].squeeze(0).numpy()      # (seq,)  CPU numpy
@@ -318,7 +289,6 @@ def shap_token_importance(
     n_content    = len(tokens)
     mask_id      = tokenizer.mask_token_id or tokenizer.pad_token_id
 
-    # ── Helper: run one masked variant through the model ─────────────────────
     def _run(ids_np: np.ndarray) -> np.ndarray:
         """ids_np: (seq,) int array → softmax probs (num_labels,)"""
         if _TORCH_AVAILABLE:
@@ -328,7 +298,6 @@ def shap_token_importance(
                 out = model(input_ids=ids_t, attention_mask=mask_t)
             lg = out.logits.squeeze(0).float().cpu().numpy()
         else:
-            # Mock path: pass numpy arrays directly
             out = model(
                 input_ids      = ids_np[np.newaxis, :],
                 attention_mask = attn_mask_np[np.newaxis, :],
@@ -337,7 +306,6 @@ def shap_token_importance(
         e = np.exp(lg - lg.max())
         return e / e.sum()
 
-    # ── Baseline prediction ───────────────────────────────────────────────────
     probs_orig = _run(input_ids_np)
     pred_lbl   = int(probs_orig.argmax())
     pred_prob  = float(probs_orig.max())
@@ -352,17 +320,14 @@ def shap_token_importance(
             ids = input_ids_np.copy()
             for i, keep in enumerate(row):
                 if keep == 0:
-                    ids[i + 1] = mask_id   # +1 to skip [CLS]
+                    ids[i + 1] = mask_id  
             results.append(_run(ids))
         return np.array(results)
 
-    # ── try shap ──────────────────────────────────────────────────────────────
     method_used = "loo"
     try:
-        import shap  # type: ignore
+        import shap 
 
-        # background: all-masked sentence (baseline)
-        # instance:   all-present sentence (what we explain)
         background = np.zeros((1, n_content))
         explainer  = shap.KernelExplainer(predict_fn, background)
         instance   = np.ones((1, n_content))
@@ -372,12 +337,11 @@ def shap_token_importance(
         #   list[ndarray]  — one (1, n_content) array per class  (older shap)
         #   ndarray        — shape (n_content,) or (1, n_content) (newer shap)
         if isinstance(shap_vals, list):
-            # Multi-output: pick the predicted class
             sv = np.array(shap_vals[pred_lbl])
         else:
             sv = np.array(shap_vals)
 
-        sv = sv.squeeze()  # → (n_content,)
+        sv = sv.squeeze() 
 
         # Sanity-check: if shape still doesn't match n_content, fall through to LOO
         if sv.shape == (n_content,):
@@ -402,11 +366,9 @@ def shap_token_importance(
             p_masked      = predict_fn(mask_row)[0, pred_lbl]
             scores[i]     = baseline_prob - p_masked
 
-    # Normalise to [0, 1]
     s_abs       = np.abs(scores)
     scores_norm = s_abs / (s_abs.max() + 1e-9)
 
-    # Final shape guard — should never fire, but makes the bug obvious if it does
     assert scores_norm.shape == (n_content,), (
         f"scores_norm shape {scores_norm.shape} != n_content {n_content}. "
         f"tokens={tokens[:5]}..."
@@ -420,11 +382,6 @@ def shap_token_importance(
         pred_prob=pred_prob,
         true_label=true_label,
     )
-
-
-# ═══════════════════════════════════════════════════════════════════════════════
-#  Visualisation helpers
-# ═══════════════════════════════════════════════════════════════════════════════
 
 def plot_token_heatmap(
     ti: TokenImportance,
@@ -521,7 +478,6 @@ def plot_attention_head_map(
     tokens  = tokenizer.convert_ids_to_tokens(ids_list)
     short_tokens = [t[:8] for t in tokens]
 
-    # 2 heads per row → large, readable sub-plots
     cols = 2
     rows = (n_heads + cols - 1) // cols
     fig, axes = plt.subplots(
@@ -532,7 +488,6 @@ def plot_attention_head_map(
     axes = np.array(axes).flatten()
 
     seq = len(short_tokens)
-    # Tick positions — show at most 20 labels to avoid overcrowding
     tick_step  = max(1, seq // 20)
     tick_pos   = list(range(0, seq, tick_step))
     tick_lbls  = [short_tokens[i] for i in tick_pos]
@@ -552,7 +507,6 @@ def plot_attention_head_map(
         ax.set_xlabel("Key token",   fontsize=8, labelpad=3)
         ax.set_ylabel("Query token", fontsize=8, labelpad=3)
 
-        # Annotate the strongest attention cell per row so the eye can follow it
         for row_idx in range(seq):
             peak = int(mat[row_idx].argmax())
             ax.add_patch(plt.Rectangle(
@@ -586,12 +540,10 @@ def plot_top_important_tokens(
     from .eda_utils import set_style, PALETTE_UNFAIR, PALETTE_FAIR
 
     set_style()
-    # Aggregate: map each token to its max importance across all samples
     unfair_scores: Dict[str, List[float]] = defaultdict(list)
     fair_scores:   Dict[str, List[float]] = defaultdict(list)
 
     for ti in token_importances:
-        # Clean sub-word markers
         for tok, score in zip(ti.tokens, ti.scores):
             clean = re.sub(r"^##", "", tok).lower().strip()
             if len(clean) < 2 or clean in ("[cls]", "[sep]", "[pad]"):

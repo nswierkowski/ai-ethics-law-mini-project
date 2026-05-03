@@ -26,7 +26,6 @@ import seaborn as sns
 from .training_config import LABEL_NAMES, BINARY_LABEL_NAMES
 from .eda_utils import set_style, PALETTE_FAIR, PALETTE_UNFAIR, CLASS_COLORS
  
-# Consistent colour per experiment
 EXP_COLORS = {
     "A_multiclass_baseline":  "#E63946",
     "B_multiclass_balanced":  "#2A9D8F",
@@ -42,7 +41,6 @@ EXP_SHORT = {
 }
  
  
-# ── Training curves ───────────────────────────────────────────────────────────
  
 def plot_training_curves(results: Dict, figsize=(16, 10)) -> plt.Figure:
     """
@@ -89,7 +87,6 @@ def plot_training_curves(results: Dict, figsize=(16, 10)) -> plt.Figure:
     return fig
  
  
-# ── Experiment comparison bar chart ───────────────────────────────────────────
  
 def plot_experiment_comparison(results: Dict, figsize=(13, 5)) -> plt.Figure:
     """
@@ -126,7 +123,6 @@ def plot_experiment_comparison(results: Dict, figsize=(13, 5)) -> plt.Figure:
     return fig
  
  
-# ── Confusion matrices ────────────────────────────────────────────────────────
  
 def plot_confusion_matrices(results: Dict, figsize=(18, 14)) -> plt.Figure:
     """One normalised confusion matrix per experiment, in a 2×2 grid."""
@@ -137,7 +133,6 @@ def plot_confusion_matrices(results: Dict, figsize=(18, 14)) -> plt.Figure:
     for idx, (exp_name, res) in enumerate(results.items()):
         ax = axes[idx]
         cm = res.confusion_mat.astype(float)
-        # Row-normalise (recall per class)
         row_sums = cm.sum(axis=1, keepdims=True)
         cm_norm  = np.divide(cm, row_sums, where=row_sums != 0)
  
@@ -170,7 +165,6 @@ def plot_confusion_matrices(results: Dict, figsize=(18, 14)) -> plt.Figure:
     return fig
  
  
-# ── Per-class F1 heatmap ──────────────────────────────────────────────────────
  
 def plot_per_class_f1_heatmap(results: Dict, figsize=(13, 5)) -> plt.Figure:
     """
@@ -214,9 +208,7 @@ def plot_per_class_f1_heatmap(results: Dict, figsize=(13, 5)) -> plt.Figure:
     fig.tight_layout(pad=2)
     return fig
  
- 
-# ── Summary DataFrame ─────────────────────────────────────────────────────────
- 
+  
 def results_to_dataframe(results: Dict) -> pd.DataFrame:
     rows = []
     for exp_name, res in results.items():

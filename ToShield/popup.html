@@ -1,0 +1,376 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ToS Shield</title>
+  <style>
+    /* ── Tokens ─────────────────────────────────────────────────────────── */
+    :root {
+      --bg-base:      #0f1117;
+      --bg-card:      #181c27;
+      --bg-elevated:  #1f2333;
+      --border:       rgba(255,255,255,0.07);
+      --border-hover: rgba(255,255,255,0.14);
+
+      --text-primary:   #eef0f6;
+      --text-secondary: #8b92a8;
+      --text-muted:     #4f566b;
+
+      --red:      #e53e3e;
+      --red-dim:  rgba(229,62,62,0.15);
+      --red-glow: rgba(229,62,62,0.3);
+
+      --green:     #38a169;
+      --green-dim: rgba(56,161,105,0.12);
+
+      --blue:     #4299e1;
+      --blue-dim: rgba(66,153,225,0.12);
+
+      --radius-sm: 6px;
+      --radius-md: 10px;
+      --radius-lg: 14px;
+
+      --font: 'SF Pro Display', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      --font-mono: 'SF Mono', 'Fira Code', monospace;
+    }
+
+    /* ── Reset ─────────────────────────────────────────────────────────── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    /* ── Base ──────────────────────────────────────────────────────────── */
+    body {
+      width: 320px;
+      min-height: 420px;
+      background: var(--bg-base);
+      color: var(--text-primary);
+      font-family: var(--font);
+      font-size: 13px;
+      line-height: 1.5;
+      overflow: hidden;
+    }
+
+    /* ── Header ────────────────────────────────────────────────────────── */
+    .header {
+      padding: 18px 18px 14px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .logo {
+      width: 34px;
+      height: 34px;
+      background: linear-gradient(135deg, #e53e3e 0%, #c53030 100%);
+      border-radius: var(--radius-md);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 18px;
+      flex-shrink: 0;
+      box-shadow: 0 2px 12px var(--red-glow);
+    }
+
+    .title-block { flex: 1; min-width: 0; }
+
+    .title {
+      font-size: 15px;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+      color: var(--text-primary);
+    }
+
+    .subtitle {
+      font-size: 11px;
+      color: var(--text-muted);
+      letter-spacing: 0.02em;
+      margin-top: 1px;
+    }
+
+    /* ── Model status card ─────────────────────────────────────────────── */
+    .status-card {
+      margin: 14px 16px 0;
+      padding: 11px 14px;
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-md);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      transition: border-color 0.2s;
+    }
+
+    .status-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      flex-shrink: 0;
+      background: var(--text-muted);
+      transition: background 0.3s, box-shadow 0.3s;
+    }
+
+    .status-dot.ready {
+      background: var(--green);
+      box-shadow: 0 0 8px rgba(56,161,105,0.5);
+      animation: pulse-green 2s infinite;
+    }
+
+    .status-dot.loading {
+      background: var(--blue);
+      animation: pulse-blue 1s infinite;
+    }
+
+    .status-dot.error {
+      background: var(--red);
+      box-shadow: 0 0 8px var(--red-glow);
+    }
+
+    @keyframes pulse-green {
+      0%, 100% { box-shadow: 0 0 6px rgba(56,161,105,0.4); }
+      50%       { box-shadow: 0 0 12px rgba(56,161,105,0.7); }
+    }
+    @keyframes pulse-blue {
+      0%, 100% { opacity: 1; }
+      50%       { opacity: 0.5; }
+    }
+
+    .status-text { flex: 1; min-width: 0; }
+    .status-label { font-size: 12px; font-weight: 600; color: var(--text-primary); }
+    .status-detail { font-size: 11px; color: var(--text-secondary); margin-top: 1px; }
+
+    /* ── Progress bar ──────────────────────────────────────────────────── */
+    .progress-wrap {
+      margin: 10px 16px 0;
+      display: none;
+    }
+    .progress-wrap.visible { display: block; }
+    .progress-bar-bg {
+      height: 3px;
+      background: var(--bg-elevated);
+      border-radius: 2px;
+      overflow: hidden;
+    }
+    .progress-bar-fill {
+      height: 100%;
+      background: linear-gradient(90deg, var(--blue) 0%, #63b3ed 100%);
+      border-radius: 2px;
+      width: 0%;
+      transition: width 0.3s ease;
+    }
+    .progress-label {
+      font-size: 10px;
+      color: var(--text-muted);
+      margin-top: 4px;
+      font-family: var(--font-mono);
+    }
+
+    /* ── Divider ───────────────────────────────────────────────────────── */
+    .divider {
+      height: 1px;
+      background: var(--border);
+      margin: 14px 0;
+    }
+
+    /* ── Main content ──────────────────────────────────────────────────── */
+    .content { padding: 0 16px; }
+
+    /* ── Analyze button ────────────────────────────────────────────────── */
+    .btn-analyze {
+      width: 100%;
+      padding: 12px 18px;
+      background: linear-gradient(135deg, #e53e3e 0%, #c53030 100%);
+      border: none;
+      border-radius: var(--radius-md);
+      color: #fff;
+      font-family: var(--font);
+      font-size: 13px;
+      font-weight: 700;
+      letter-spacing: 0.01em;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      transition: opacity 0.15s, transform 0.12s, box-shadow 0.2s;
+      box-shadow: 0 3px 14px var(--red-glow);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .btn-analyze::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(135deg, rgba(255,255,255,0.12), transparent);
+      opacity: 0;
+      transition: opacity 0.15s;
+    }
+
+    .btn-analyze:hover { transform: translateY(-1px); box-shadow: 0 5px 20px var(--red-glow); }
+    .btn-analyze:hover::before { opacity: 1; }
+    .btn-analyze:active { transform: translateY(0); }
+    .btn-analyze:disabled {
+      opacity: 0.45;
+      cursor: not-allowed;
+      transform: none;
+      box-shadow: none;
+    }
+
+    .btn-icon { font-size: 15px; }
+
+    /* ── Spinner ───────────────────────────────────────────────────────── */
+    .spinner {
+      width: 14px;
+      height: 14px;
+      border: 2px solid rgba(255,255,255,0.3);
+      border-top-color: #fff;
+      border-radius: 50%;
+      animation: spin 0.7s linear infinite;
+      display: none;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* ── Results panel ─────────────────────────────────────────────────── */
+    .results {
+      margin-top: 12px;
+      display: none;
+    }
+    .results.visible { display: block; }
+
+    .results-header {
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      color: var(--text-muted);
+      margin-bottom: 8px;
+    }
+
+    .result-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 9px 12px;
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      margin-bottom: 6px;
+    }
+
+    .result-icon { font-size: 15px; flex-shrink: 0; }
+
+    .result-text { flex: 1; min-width: 0; }
+    .result-value {
+      font-size: 20px;
+      font-weight: 800;
+      letter-spacing: -0.04em;
+      line-height: 1;
+    }
+    .result-desc {
+      font-size: 11px;
+      color: var(--text-secondary);
+      margin-top: 2px;
+    }
+
+    .result-item.danger  { background: var(--red-dim);   border-color: rgba(229,62,62,0.25); }
+    .result-item.safe    { background: var(--green-dim);  border-color: rgba(56,161,105,0.2); }
+    .result-item.neutral { background: var(--blue-dim);   border-color: rgba(66,153,225,0.2); }
+
+    /* ── Footer ────────────────────────────────────────────────────────── */
+    .footer {
+      padding: 10px 16px 14px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .footer-badge {
+      font-size: 10px;
+      color: var(--text-muted);
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .privacy-dot {
+      width: 5px;
+      height: 5px;
+      border-radius: 50%;
+      background: var(--green);
+    }
+  </style>
+</head>
+<body>
+
+  <!-- ── Header ─────────────────────────────────────────────────────────── -->
+  <header class="header">
+    <div class="logo">🛡️</div>
+    <div class="title-block">
+      <div class="title">ToS Shield</div>
+      <div class="subtitle">On-device legal clause detector</div>
+    </div>
+  </header>
+
+  <!-- ── Model Status ───────────────────────────────────────────────────── -->
+  <div class="status-card" id="statusCard">
+    <div class="status-dot" id="statusDot"></div>
+    <div class="status-text">
+      <div class="status-label" id="statusLabel">Checking model…</div>
+      <div class="status-detail" id="statusDetail">Local DistilBERT · 10 classes</div>
+    </div>
+  </div>
+
+  <!-- ── Load Progress ──────────────────────────────────────────────────── -->
+  <div class="progress-wrap" id="progressWrap">
+    <div class="progress-bar-bg">
+      <div class="progress-bar-fill" id="progressFill"></div>
+    </div>
+    <div class="progress-label" id="progressLabel">Loading…  0%</div>
+  </div>
+
+  <!-- ── Main Content ───────────────────────────────────────────────────── -->
+  <div class="content">
+    <div class="divider"></div>
+
+    <!-- Analyze Button -->
+    <button class="btn-analyze" id="btnAnalyze" disabled>
+      <div class="spinner" id="spinner"></div>
+      <span class="btn-icon" id="btnIcon">🔍</span>
+      <span id="btnText">Analyze This Page</span>
+    </button>
+
+    <!-- Results -->
+    <div class="results" id="results">
+      <div class="divider"></div>
+      <div class="results-header">Last Scan Results</div>
+
+      <div class="result-item danger" id="resultUnfair">
+        <span class="result-icon">⚠️</span>
+        <div class="result-text">
+          <div class="result-value" id="unfairCount">—</div>
+          <div class="result-desc">Unfair clauses detected</div>
+        </div>
+      </div>
+
+      <div class="result-item neutral">
+        <span class="result-icon">📄</span>
+        <div class="result-text">
+          <div class="result-value" id="totalCount">—</div>
+          <div class="result-desc">Paragraphs scanned</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Footer ─────────────────────────────────────────────────────────── -->
+  <footer class="footer">
+    <div class="footer-badge">
+      <div class="privacy-dot"></div>
+      100% on-device · no data leaves your browser
+    </div>
+  </footer>
+
+  <script src="popup.js"></script>
+</body>
+</html>

@@ -19,19 +19,17 @@ import numpy as np
 import pandas as pd
 from matplotlib.gridspec import GridSpec
 
-# ── Palette ───────────────────────────────────────────────────────────────────
 
-PALETTE_UNFAIR = "#E63946"   # vivid red  → unfair clauses
-PALETTE_FAIR   = "#2A9D8F"   # teal       → fair / OK
-PALETTE_NEUTRAL = "#457B9D"  # steel blue → neutral metrics
 
-# Per-class colour cycle (10 colours)
+PALETTE_UNFAIR = "#E63946"   # vivid red  -> unfair clauses
+PALETTE_FAIR   = "#2A9D8F"   # teal       -> fair / OK
+PALETTE_NEUTRAL = "#457B9D"  # steel blue -> neutral metrics
+
 CLASS_COLORS = [
     "#E63946", "#F4A261", "#E9C46A", "#264653", "#2A9D8F",
     "#A8DADC", "#457B9D", "#1D3557", "#8338EC", "#06D6A0",
 ]
 
-# ── Basic statistics ──────────────────────────────────────────────────────────
 
 def compute_class_stats(df: pd.DataFrame) -> pd.DataFrame:
     """Return per-class count, percentage, and fair/unfair flag."""
@@ -60,8 +58,6 @@ def compute_text_stats(df: pd.DataFrame) -> pd.DataFrame:
         .round(1)
     )
 
-
-# ── Plot helpers ──────────────────────────────────────────────────────────────
 
 def set_style() -> None:
     """Apply a clean, publication-ready matplotlib style."""
@@ -99,7 +95,6 @@ def plot_class_distribution(
     fig, (ax_bar, ax_pie) = plt.subplots(1, 2, figsize=figsize,
                                           gridspec_kw={"width_ratios": [2.5, 1]})
 
-    # ── Bar chart ──────────────────────────────────────────────────────────
     colors = [PALETTE_UNFAIR if u else PALETTE_FAIR
               for u in stats["is_unfair"]]
     bars = ax_bar.barh(
@@ -114,7 +109,6 @@ def plot_class_distribution(
     ax_bar.set_title(title, pad=12)
     ax_bar.invert_yaxis()
 
-    # Annotate bars
     for bar, pct in zip(bars, stats["pct"]):
         w = bar.get_width()
         ax_bar.text(
@@ -127,7 +121,6 @@ def plot_class_distribution(
         )
     ax_bar.set_xlim(0, stats["count"].max() * 1.25)
 
-    # Legend
     ax_bar.legend(
         handles=[
             mpatches.Patch(color=PALETTE_UNFAIR, label="Unfair (labels 0–8)"),
@@ -137,7 +130,6 @@ def plot_class_distribution(
         framealpha=0.9,
     )
 
-    # ── Pie chart (binary) ─────────────────────────────────────────────────
     fair_total   = stats.loc[~stats["is_unfair"], "count"].sum()
     unfair_total = stats.loc[stats["is_unfair"],  "count"].sum()
     pie_vals  = [fair_total, unfair_total]
@@ -172,7 +164,7 @@ def plot_text_length_distribution(
     """
     Overlapping KDE + rug for text-length metrics, split by fair/unfair.
     """
-    from scipy.stats import gaussian_kde  # type: ignore
+    from scipy.stats import gaussian_kde  
 
     set_style()
     if title is None:
@@ -185,7 +177,7 @@ def plot_text_length_distribution(
         (axes[1], 1, "Unfair",     PALETTE_UNFAIR),
     ]:
         subset = df[df["is_unfair"] == group_col][col].dropna()
-        subset = subset[subset < subset.quantile(0.99)]  # trim outliers
+        subset = subset[subset < subset.quantile(0.99)]  
 
         if len(subset) > 5:
             kde = gaussian_kde(subset, bw_method="scott")
@@ -248,7 +240,7 @@ def plot_text_stats_heatmap(
         .mean()
         .round(1)
     )
-    # Normalise columns for colour mapping
+
     norm = (pivot - pivot.min()) / (pivot.max() - pivot.min() + 1e-9)
 
     fig, ax = plt.subplots(figsize=figsize)
@@ -259,7 +251,6 @@ def plot_text_stats_heatmap(
     ax.set_yticks(range(len(pivot.columns)))
     ax.set_yticklabels(["Word Count", "Char Length", "Sentence Count"], fontsize=9)
 
-    # Annotate cells with raw values
     for r, metric in enumerate(pivot.columns):
         for c, cls in enumerate(pivot.index):
             val = pivot.loc[cls, metric]
@@ -305,8 +296,6 @@ def plot_sample_balance_splits(
     fig.tight_layout(pad=2)
     return fig
 
-
-# ── Downsampling helpers ──────────────────────────────────────────────────────
 
 def downsample_majority_class(
     df: pd.DataFrame,
