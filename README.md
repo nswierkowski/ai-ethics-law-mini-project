@@ -2,7 +2,7 @@
 
 **Autor:** Nikodem Świerkowski, nr indeksu: 266861
 
-**Temat:** ["własny"] — [Wtyczka do przeglądarki wykrywająca potencjalnie niesprawiedliwe fragmenty w warunki użytkowania (Terms of Usage) oraz warunki świadczenia usług (Terms of Service) serwisów internetowych, z których korzysta użytkownik.]
+**Temat:** ["własny"] - [Wtyczka do przeglądarki wykrywająca potencjalnie niesprawiedliwe fragmenty w warunki użytkowania (Terms of Usage) oraz warunki świadczenia usług (Terms of Service) serwisów internetowych, z których korzysta użytkownik.]
 
 **Kurs:** Aspekty prawne, społeczne i etyczne w AI, PWr 2025/2026
 
@@ -34,7 +34,6 @@ Aby uruchomić wtyczkę:
 
 ## Cel projektu
 
-[2-3 zdania: co projekt robi i po co. Jaki problem rozwiązuje / analizuje?]
 
 Projekt ma na celu zbudowanie wtyczki do przeglądarki, aby móc szybko zweryfikować czy zapis w umowach użytkowania są fair względem użytkownika. Większość osób nie czyta takich umów, a mały model językowy byłby w stanie znacznie ułatwić weryfikację wiarygodności firmy i jej usługi. Co więcej model działa lokalnie, więc nie ma zawachania, że ktoś wytrenuje model, by omijał część treści umów.
 Projekt obejmuje analizę zbioru danych, wytrenowanie modeli, zbadanie ich działania, a także zbudowanie aplikacji.
@@ -42,7 +41,6 @@ Projekt obejmuje analizę zbioru danych, wytrenowanie modeli, zbadanie ich dzia�
 
 ## Powiązanie z projektem grupowym
 
-[Jak mini-projekt wiąże się z Waszym projektem naukowo-wdrożeniowym? Jeśli nie — napisz dlaczego wybrałeś ten temat.]
 
 Projekt nie jest związany z moim projektem NW, ponieważ jest on stricte naukowy, nie ma potencjału analizy w aspektach prawnych oraz moralnych.
 
@@ -85,8 +83,6 @@ uv run jupyter notebook notebooks/analiza.ipynb
 ```
 
 ## Wyniki
-
-[Najważniejsze wyniki — tabelki, wykresy, liczby. Wstaw bezpośrednio lub linkuj do plików w `wyniki/`.]
 
 
 ### 1. Analiza Zbioru Danych
@@ -140,7 +136,7 @@ Model A został wyeksportowany do ONNX i poddany **dynamicznej kwantyzacji INT8*
 | ONNX FP32 | 268 MB | ~0% |
 | **ONNX INT8** | **67,6 MB** | **−75%** |
 
-ONNX FP32 zachowuje pełną zgodność z PyTorch (max |Δ| = 5.25×10⁻⁶, 100% zgodnych predykcji). Model INT8 wprowadza kompromis — rozmiar 4× mniejszy, ale ze spadkiem zgodności predykcji do ~55% na zbiorze testowym, z tendencją do klasyfikowania klauzul nieuczciwych jako „Fair".
+ONNX FP32 zachowuje pełną zgodność z PyTorch (max |Δ| = 5.25×10⁻⁶, 100% zgodnych predykcji). Model INT8 wprowadza kompromis - rozmiar 4× mniejszy, ale ze spadkiem zgodności predykcji do ~55% na zbiorze testowym, z tendencją do klasyfikowania klauzul nieuczciwych jako „Fair".
 
 Redukcja do ~68 MB jest **warunkiem koniecznym** działania w przeglądarce: CSP Manifest V3 blokuje zdalne pobieranie modelu, Chrome Web Store ma limity rozmiaru pakietu, a ONNX Runtime Web działa w ograniczonej pamięci WebAssembly. Kwantyzacja INT8 zapewnia dodatkowo ~2–4× przyspieszenie inferencji na CPU dzięki instrukcjom SIMD.
 
@@ -148,32 +144,38 @@ Redukcja do ~68 MB jest **warunkiem koniecznym** działania w przeglądarce: CSP
 
 ### 4. Działanie Aplikacji
 
-![Popup rozszerzenia — model gotowy i wyniki skanowania](wyniki/figures/Apple-positive-example.png)
+![Popup rozszerzenia - model gotowy i wyniki skanowania](wyniki/figures/Apple-positive-example.png)
 
-*Okno popup z informacją o statusie modelu (zielona kropka = gotowy) oraz wynikami ostatniego skanowania — liczba wykrytych nieuczciwych klauzul i łączna liczba przeskanowanych akapitów.*
+*Okno popup z informacją o statusie modelu (zielona kropka = gotowy) oraz wynikami ostatniego skanowania - liczba wykrytych nieuczciwych klauzul i łączna liczba przeskanowanych akapitów.*
 
 ![Podświetlenie klauzuli na stronie Apple](wyniki/figures/Apple-negative-example.png)
 
-*Podświetlony na czerwono akapit zawierający potencjalnie nieuczciwą klauzulę. Powyżej injected jest karta ostrzegawcza z kategorią (np. „ARBITRATION"), poziomem pewności modelu ONNX oraz jednozdaniowym wyjaśnieniem — bez żadnego zewnętrznego API.*
+*Podświetlony na czerwono akapit zawierający potencjalnie nieuczciwą klauzulę. Powyżej injected jest karta ostrzegawcza z kategorią (np. „ARBITRATION"), poziomem pewności modelu ONNX oraz jednozdaniowym wyjaśnieniem - bez żadnego zewnętrznego API.*
 
 
 ## Wnioski merytoryczne
 
-[Kluczowa sekcja — co wynika z analizy w kontekście prawa / etyki / regulacji AI? Konkretne obserwacje i rekomendacje.]
-
 Po pierwsze, model jest w stanie skutecznie wykrywać nieuczciwe klauzule w regulaminach, co może znacząco zwiększyć świadomość użytkowników i ich ochronę prawną. 
 
-Po drugie, analiza XAI potwierdza, że model opiera swoje decyzje na semantycznie relewantnych cechach językowych, a nie na artefaktach danych — co jest kluczowe dla zaufania do systemu. Przede wszystkim co jest istotne, to że po zobaczeniu przykładów, można dostrzec powtarzalne wzorce językowe, które są charakterystyczne dla klauzul nieuczciwych — co może być cenną wskazówką dla zwykłych użytkowników, by łatwiej rozpoznawać nieuczciwe klauzule.
+Po drugie, analiza XAI potwierdza, że model opiera swoje decyzje na semantycznie relewantnych cechach językowych, a nie na artefaktach danych - co jest kluczowe dla zaufania do systemu. Przede wszystkim co jest istotne, to że po zobaczeniu przykładów, można dostrzec powtarzalne wzorce językowe, które są charakterystyczne dla klauzul nieuczciwych - co może być cenną wskazówką dla zwykłych użytkowników, by łatwiej rozpoznawać nieuczciwe klauzule.
 
-Po trzecie, zastosowanie kwantyzacji i formatu ONNX umożliwia działanie modelu bezpośrednio w przeglądarce, potencjalnie pozwala to na bardziej prywatne i dostępne rozwiązanie. Wyobraźmy sobie o kolejnych następstwach - wtyczki wykrywające wiadomości phishingowe, fałszywe recenzje, czy nawet dezinformację w mediach społecznościowych — wszystko to działające lokalnie, bez konieczności wysyłania danych do zewnętrznych serwerów.
+Po trzecie, zastosowanie kwantyzacji i formatu ONNX umożliwia działanie modelu bezpośrednio w przeglądarce, potencjalnie pozwala to na bardziej prywatne i dostępne rozwiązanie. Wyobraźmy sobie o kolejnych następstwach - wtyczki wykrywające wiadomości phishingowe, fałszywe recenzje, czy nawet dezinformację w mediach społecznościowych - wszystko to działające lokalnie, bez konieczności wysyłania danych do zewnętrznych serwerów.
 
 ## Ograniczenia
-
-[Czego projekt nie robi? Co można by rozszerzyć? Bądź uczciwy.]
 
 Projekt na pewno cierpi na brak drugiego modelu wyjaśniającego, dlaczego dany fragment został uznany za niesprawiedliwy. Dodatkowo, model jest trenowany na małej ilości danych, więc jego skuteczność może być ograniczona. W przyszłości można by rozszerzyć zbiór danych. 
 Dalej dystansowo można by rozważyć bardziej zaawansowane modele, które lepiej radzą sobie z długimi tekstami oraz bardziej zaawansowanej kwantyzacji, która umożliwiłaby wykorzystanie bardziej zasobożernych rozwiązań po stronie klienta.
 
 ## Źródła
 
-- [Nazwa źródła](URL) — krótki opis
+- [CLAUDETTE: an Automated Detector of Potentially Unfair Clauses in Online Terms of Service](https://arxiv.org/abs/1805.01217) — Lippi et al. (2018/2019). Artykuł publikujący oryginalny zbiór danych z adnotacjami nieuczciwych klauzul ToS, który stanowi podstawę podzbioru `unfair_tos` w LexGLUE.
+- [LexGLUE: A Benchmark Dataset for Legal Language Understanding in English](https://arxiv.org/abs/2110.00976) — Chalkidis et al. (ACL 2022). Benchmark skupiający siedem zbiorów danych do ewaluacji modeli NLP w zadaniach prawniczych, w tym `unfair_tos`. Źródło etykiet i podziałów train/val/test użytych w projekcie. 
+- [DistilBERT, a distilled version of BERT: smaller, faster, cheaper and lighter](https://arxiv.org/abs/1910.01108) — Sanh, Debut, Chaumond, Wolf (2019). Artykuł opisujący architekturę DistilBERT — model jest o 40% mniejszy i 60% szybszy od BERT-base przy zachowaniu 97% jego możliwości. Wybrano go jako rdzeń projektu ze względu na ograniczenia środowiska przeglądarki. 
+- [Focal Loss for Dense Object Detection](https://arxiv.org/abs/1708.02002) — Lin, Goyal, Girshick, He, Dollár (ICCV 2017). Artykuł wprowadzający Focal Loss — funkcję straty redukującą wpływ łatwych przykładów podczas trenowania, zastosowaną w eksperymencie D projektu do walki z nierównowagą klas (~88,6% klasy „Fair"). 
+- [Quantifying Attention Flow in Transformers](https://arxiv.org/abs/2005.00928) — Abnar & Zuidema (ACL 2020). Artykuł proponujący metodę Attention Rollout — propagację wag uwagi przez warstwy transformera w celu wyznaczenia ważności tokenów wejściowych. Zastosowano ją jako pierwszą metodę XAI w projekcie.
+- [Axiomatic Attribution for Deep Networks](https://arxiv.org/abs/1703.01365) — Sundararajan, Taly, Yan (ICML 2017). Artykuł wprowadzający metodę Integrated Gradients - atrybucję predykcji sieci głębokiej jako całkę gradientów po ścieżce od punktu bazowego do wejścia. Zastosowana jako druga metoda XAI.
+- [A Unified Approach to Interpreting Model Predictions](https://arxiv.org/abs/1705.07874) - Lundberg & Lee (NeurIPS 2017). Artykuł wprowadzający SHAP (SHapley Additive exPlanations) - ujednoliconą ramę interpretacji predykcji modeli opartą na wartościach Shapleya z teorii gier. Zastosowany jako trzecia metoda XAI (KernelExplainer / LOO fallback). 
+- [HuggingFace Optimum](https://github.com/huggingface/optimum) - Biblioteka do optymalizacji, eksportu do ONNX i kwantyzacji modeli HuggingFace Transformers. Użyta do konwersji modelu do formatu ONNX FP32 oraz dynamicznej kwantyzacji INT8 (`ORTModelForSequenceClassification`, `ORTQuantizer`).
+- [Transformers.js](https://github.com/huggingface/transformers.js) - Biblioteka JavaScript umożliwiająca uruchamianie modeli HuggingFace Transformers (w formacie ONNX) bezpośrednio w przeglądarce bez serwera, za pośrednictwem ONNX Runtime Web (WASM). Użyta jako silnik inferencji w rozszerzeniu Chrome.
+ 
+

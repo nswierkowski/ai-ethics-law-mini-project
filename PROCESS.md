@@ -19,6 +19,11 @@ Ten plik dokumentuje **jak** pracowałem/am nad mini-projektem — jakie narzęd
 
 > Nie wklejaj outputu z AI — tylko prompty, które wpisywałeś/aś.
 
+Najważniejsze prompty, które wpisałem w formacie:
+- Nagłówek -> Nazwa określająca co robił prompt
+- Prompt -> dokładny fragment wysłany dla modelu
+- Kontekst -> opis wprowadzający w brakujący kontekst 
+
 ### "Generowanie kodu do pierwszego notebooka"
 
 ```
@@ -253,12 +258,16 @@ Mimo to, z decydowałem się użyć modelu multiklasowego ze specjalną funkcją
 
 2. **Wybór modelu** — Wiedziałem, że projekt docelową ma być wtyczką do przeglądarki, więc model musi być lekki i szybki. Zdecydowałem się na DistilBERT, ponieważ jest to mniejsza i szybsza wersja BERT-a, która nadal oferuje dobrą wydajność na zadaniach klasyfikacji tekstu. Alternatywnie rozważałem użycie Legalbert, który jest modelem specjalizowanym w języku prawniczym, ale obawiałem się, że może być zbyt duży i wolny do uruchamiania lokalnie w przeglądarce. Ostatecznie DistilBERT okazał się dobrym kompromisem między wydajnością a rozmiarem.
 3. **Spadek jakości modelu po kwantyzacji** — Po zastosowaniu 8-bitowej kwantyzacji, model zaczął popełniać znacznie więcej błędów, szczególnie w klasach mniejszościowych. W finalnym projecie wciąż modelu INT8, nawet pomimo jego gorszej jakości, traktując zasobożerność, jako kluczowy parametr. W finalnym projecie pozostawiłem alternatywny model FP32, który można by wykorzystać w przyszłości, gdyby zasoby pozwalały na jego uruchomienie po stronie klienta.
+
+4. **Architektura wtyczki** — Początkowo planowałem, że wtyczka będzie automatycznie skanować całą stronę i oceniać każdy fragment tekstu, ale okazało się to niepraktyczne z powodu różnorodności struktur stron internetowych oraz potencjalnego obciążenia przeglądarki. Zdecydowałem się na podejście, w którym użytkownik ręcznie zaznacza fragment tekstu, który chce ocenić, co daje mu większą kontrolę nad tym, co jest analizowane przez model.
+
 ## Co nie zadziałało
 
-[Ślepe uliczki, błędy, nieudane podejścia — to jest wartościowa część dokumentacji]
-
-1. **[Problem]** — [Co poszło nie tak? Jak to naprawiłem / obszedłem?]
-2. **[Problem]** — [...]
+1. **Transformer.js lub Google Chrome nie wspieraja modeli z wagami w formacie fp16** — Po odkryciu znacznych spradków jakościowych po kwantyzacji, rozważałem użycie modelu w formacie fp16, który mógłby być uruchamiany przez Transformer.js bez konieczności stosowania tak agresywnej kwantyzacji. Niestety, zarówno Transformer.js, lub  Google Chrome nie wspierają modeli z wagami w formacie fp16, co zmusiło mnie do pozostania przy modelu INT8, pomimo jego gorszej jakości.
+2. **Decyzja o kodzie, który jest prowadzony przez notebooki** — Pierwotnie taka forma repozytorium, gdzie uruchamianie notebooku, wykonuje wszystkie potrzebne operacje od trenowania modelu, po jego eksport do ONNX, była dla mnie wygodna, ale okazała się problematyczna z uwagi na to, że kod w notebookach jest trudniejszy do debugowania i testowania. Często co zostało wycięte z ostatecznej wersji dodawałem komórki "checkpointy", które pozwalały mi na szybkie uruchomienie kodu od konkretnego miejsca, ale mimo to, ostatecznie zdecydowałem się przenieść większość kodu do folderu src, aby ułatwić sobie pracę nad projektem.
+3. **Automatyczne skanowanie strony** — Jak wspomniałem wcześniej, początkowo planowałem, że wtyczka będzie automatycznie skanować całą stronę i oceniać każdy fragment tekstu, ale okazało się to niepraktyczne z powodu różnorodności struktur stron internetowych oraz potencjalnego obciążenia przeglądarki. Zdecydowałem się na podejście, w którym użytkownik ręcznie zaznacza fragment tekstu, który chce ocenić, co daje mu większą kontrolę nad tym, co jest analizowane przez model. Mimo że to podejście jest mniej wygodne niż automatyczne skanowanie, pozwala uniknąć problemów z wydajnością i błędami związanymi z nieprawidłowym rozpoznawaniem tekstu na różnych stronach.
+4. **Problemy z uruchomieniem modelu Gemini Nano** — Model Gemini Nano, który miałbyć dostępny dla wtyczek Chrome, do generowania wyjaśnień dla wykrytych niesprawiedliwych klauzul, okazał się niemożliwy obecnie do użycia w większości krajów europejskich. W związku z tym, musiałem zrezygnować z tego pomysłu i zamiast tego skorzystać z natywnego API językowego Chrome do generowania prostych wyjaśnień, co jest mniej zaawansowane, ale nadal spełnia podstawową funkcję informowania użytkownika o potencjalnych problemach w tekście umowy.
+Potencjalnie jest to coś, co można dodać w przyszłości, gdy sytuacja prawna się zmieni i będzie możliwe korzystanie z tego modelu w Europie.
 
 ## Iteracje
 
